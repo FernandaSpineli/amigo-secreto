@@ -1,1 +1,1 @@
-"""Sorteio de amigo secreto com envio por SMS."""
+"""Sorteio de amigo secreto com envio por WhatsApp."""
