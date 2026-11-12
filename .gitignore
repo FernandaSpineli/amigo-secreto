@@ -1,0 +1,8 @@
+# dados reais: telefones e o resultado do sorteio
+participantes.csv
+sorteio.json
+sorteio.json.tmp
+.env
+__pycache__/
+*.pyc
+.venv/
