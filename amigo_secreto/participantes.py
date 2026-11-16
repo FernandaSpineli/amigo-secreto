@@ -1,4 +1,5 @@
-"""Leitura da lista de participantes (CSV com as colunas nome e telefone)."""
+"""Leitura da lista de participantes (CSV com as colunas nome, telefone e,
+opcionalmente, grupo)."""
 
 import csv
 import re
@@ -14,6 +15,7 @@ class ListaInvalida(ValueError):
 class Participante:
     nome: str
     telefone: str  # formato internacional, ex.: +5511987654321
+    grupo: str = ""  # quem tem o mesmo grupo (ex.: um casal) não se tira
 
 
 def normalizar_telefone(bruto: str) -> str:
@@ -54,7 +56,7 @@ def carregar(caminho: Path) -> list[Participante]:
             telefone = normalizar_telefone(linha["telefone"])
         except ListaInvalida as e:
             raise ListaInvalida(f"linha {numero}: {e}") from None
-        participantes.append(Participante(linha["nome"], telefone))
+        participantes.append(Participante(linha["nome"], telefone, " ".join(linha.get("grupo", "").split())))
 
     for campo in ("nome", "telefone"):
         vistos = set()
@@ -63,4 +65,22 @@ def carregar(caminho: Path) -> list[Participante]:
             if valor in vistos:
                 raise ListaInvalida(f"{campo} repetido: {getattr(p, campo)}")
             vistos.add(valor)
+
+    membros: dict[str, list[str]] = {}
+    for p in participantes:
+        if p.grupo:
+            membros.setdefault(p.grupo.casefold(), []).append(p.nome)
+    for nomes in membros.values():
+        if len(nomes) == 1:
+            raise ListaInvalida(f"{nomes[0]} é a única do grupo '{_grupo_de(participantes, nomes[0])}'. "
+                                "Confira se o nome do grupo foi digitado igual para as duas pessoas")
     return participantes
+
+
+def grupos(participantes: list[Participante]) -> dict[str, str]:
+    """{nome: grupo} de quem tem grupo, sem diferenciar maiúsculas."""
+    return {p.nome: p.grupo.casefold() for p in participantes if p.grupo}
+
+
+def _grupo_de(participantes: list[Participante], nome: str) -> str:
+    return next(p.grupo for p in participantes if p.nome == nome)

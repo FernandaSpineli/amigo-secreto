@@ -43,7 +43,7 @@ def _parser() -> argparse.ArgumentParser:
     sub = p.add_subparsers(required=True, metavar="comando")
 
     s = sub.add_parser("sortear", help="faz o sorteio e manda uma mensagem no WhatsApp de cada participante")
-    s.add_argument("lista", type=Path, help="CSV com as colunas nome e telefone")
+    s.add_argument("lista", type=Path, help="CSV com as colunas nome, telefone e (opcional) grupo")
     s.add_argument("--simular", action="store_true", help="faz tudo, menos enviar e salvar (não revela o resultado)")
     s.add_argument("--mensagem", default=MENSAGEM_PADRAO, help="texto da mensagem, com {nome} e {amiga}")
     s.add_argument("--novo", action="store_true", help="descarta um sorteio anterior e sorteia de novo")
@@ -74,14 +74,15 @@ def _sortear(args, enviador) -> int:
                         "ou 'sortear --novo' para descartá-lo e sortear de novo")
 
     lista = participantes.carregar(args.lista)
-    pares = sorteio.sortear([p.nome for p in lista])
+    pares = sorteio.sortear([p.nome for p in lista], participantes.grupos(lista))
     envios = [{"nome": p.nome, "telefone": p.telefone, "amiga": pares[p.nome], "situacao": PENDENTE, "sid": None}
               for p in lista]
     dados = {"criado_em": datetime.now().isoformat(timespec="seconds"), "mensagem": args.mensagem, "envios": envios}
 
     if args.simular:
         enviador = enviador or whatsapp.Simulador()
-        print(f"Simulação com {len(lista)} participantes: nenhuma caiu com o próprio nome.")
+        print(f"Simulação com {len(lista)} participantes: nenhuma caiu com o próprio nome"
+              + (" nem com alguém do mesmo grupo." if participantes.grupos(lista) else "."))
         for e in dados["envios"]:
             enviador.enviar(e["telefone"], _texto(dados, e))
             print(f"  Mensagem pronta para {e['nome']} ({e['telefone']})")

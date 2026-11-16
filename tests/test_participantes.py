@@ -2,7 +2,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from amigo_secreto.participantes import ListaInvalida, carregar, normalizar_telefone
+from amigo_secreto.participantes import ListaInvalida, carregar, grupos, normalizar_telefone
 
 
 class TelefoneTest(unittest.TestCase):
@@ -34,8 +34,9 @@ class CarregarTest(unittest.TestCase):
 
     def test_le_o_exemplo_do_projeto(self):
         lista = carregar(Path(__file__).parent.parent / "participantes.exemplo.csv")
-        self.assertEqual([p.nome for p in lista], ["Ana", "Bia", "Carla", "Duda"])
+        self.assertEqual([p.nome for p in lista], ["Ana", "Bia", "Carla", "Duda", "Pedro"])
         self.assertEqual(lista[2].telefone, "+5521998765432")
+        self.assertEqual(grupos(lista), {"Ana": "ana e pedro", "Pedro": "ana e pedro"})
 
     def test_ignora_linhas_vazias_espacos_e_maiusculas_no_cabecalho(self):
         lista = carregar(self.csv(" Nome , TELEFONE \n Ana , 11987654321 \n\n,\nBia,11912345678\n"))
@@ -59,6 +60,21 @@ class CarregarTest(unittest.TestCase):
             with self.assertRaises(ListaInvalida) as ctx:
                 carregar(self.csv(conteudo))
             self.assertIn(trecho, str(ctx.exception))
+
+    def test_grupo_e_opcional(self):
+        lista = carregar(self.csv("nome,telefone\nAna,11987654321\n"))
+        self.assertEqual(lista[0].grupo, "")
+
+    def test_le_os_grupos_sem_diferenciar_maiusculas_e_espacos(self):
+        lista = carregar(self.csv("nome,telefone,grupo\nAna,11900000001,Casal  1\nPedro,11900000002, casal 1 \n"
+                                  "Bia,11900000003,\nCarla,11900000004\n"))
+        self.assertEqual([p.grupo for p in lista], ["Casal 1", "casal 1", "", ""])
+        self.assertEqual(grupos(lista), {"Ana": "casal 1", "Pedro": "casal 1"})
+
+    def test_grupo_com_uma_pessoa_so_e_erro_de_digitacao(self):
+        with self.assertRaisesRegex(ListaInvalida, "Pedro é a única do grupo 'casal1'"):
+            carregar(self.csv("nome,telefone,grupo\nAna,11900000001,casal 1\nPedro,11900000002,casal1\n"
+                              "Bia,11900000003,casal 1\n"))
 
     def test_arquivo_inexistente(self):
         with self.assertRaisesRegex(ListaInvalida, "não encontrado"):

@@ -2,7 +2,8 @@
 
 Sorteio de amigo secreto que manda para cada pessoa, no WhatsApp, o nome de
 quem ela tirou. Ninguém cai com o próprio nome, todas tiram e são tiradas
-exatamente uma vez, e quem organiza também pode participar: o programa nunca
+exatamente uma vez, casais não se tiram, e quem organiza também pode
+participar: o programa nunca
 mostra o resultado na tela, e as mensagens saem de um número do Twilio, não
 do seu WhatsApp, então elas não ficam no seu histórico de conversas.
 
@@ -25,6 +26,20 @@ Com isso:
 
 São precisas pelo menos 3 pessoas.
 
+### Casais e grupos
+
+Pessoas do mesmo grupo (um casal, irmãs, mãe e filha) não se tiram, em
+nenhuma direção: no círculo, elas nunca ficam lado a lado. O círculo é
+embaralhado até sair um que respeite os grupos, o que dá a mesma chance a
+todas as combinações válidas. Se os grupos forem tão restritivos que isso
+demore, uma busca monta um círculo válido escolhendo cada próxima pessoa
+ao acaso.
+
+Um grupo pode ter no máximo metade das participantes. Cada pessoa do grupo
+precisa tirar alguém de fora dele, e cada pessoa de fora só é tirada uma
+vez. Por isso, um casal mais uma amiga (3 pessoas) não tem sorteio
+possível, e o programa avisa.
+
 ## Requisitos
 
 - Python 3.10 ou mais novo. Não há dependências para instalar.
@@ -39,16 +54,23 @@ Copie `participantes.exemplo.csv` para `participantes.csv` e coloque as
 amigas, com o número do WhatsApp de cada uma:
 
 ```csv
-nome,telefone
-Ana,(11) 98765-4321
-Bia,11 91234-5678
-Carla,+55 21 99876-5432
+nome,telefone,grupo
+Ana,(11) 98765-4321,Ana e Pedro
+Bia,11 91234-5678,
+Carla,+55 21 99876-5432,
+Pedro,11 97777-6666,Ana e Pedro
 ```
 
 O telefone pode ter espaços, parênteses e traço. Sem `+`, o número é tratado
 como brasileiro (DDD + número). Nomes e telefones não podem se repetir; para
 duas Anas, use "Ana S." e "Ana P.". Dá para montar a lista no Excel ou no
 Google Planilhas e salvar como CSV.
+
+A coluna `grupo` é opcional. Para um casal não se tirar, escreva o mesmo
+texto nas duas linhas (maiúsculas e espaços extras não importam); deixe em
+branco para quem não tem restrição. Um grupo com uma pessoa só é tratado
+como erro de digitação (por exemplo, "casal 1" e "casal1"), para que o
+casal não fique livre para se tirar sem você perceber.
 
 O `.gitignore` já impede que `participantes.csv` e o resultado do sorteio
 vão parar no Git.
@@ -176,9 +198,12 @@ existente.
 python3 -m unittest discover -s tests -t .
 ```
 
-Os testes rodam o sorteio milhares de vezes, com grupos de 3 a 39 pessoas,
+Os testes rodam o sorteio milhares de vezes, com turmas de 3 a 39 pessoas,
 e conferem que ninguém tira a si mesma, que todas são tiradas uma vez e que
-o resultado forma um único círculo. Também cobrem a leitura da lista, os
+o resultado forma um único círculo. Com casais e grupos, os testes conferem
+que ninguém tira alguém do próprio grupo e comparam com todas as ordens
+possíveis: o sorteio sai sempre que existe solução e é recusado quando não
+existe. Também cobrem a leitura da lista, os
 pedidos feitos ao Twilio e o fluxo completo: espera pela confirmação, falha
 depois de a mensagem ser aceita, confirmação que demora e reenvio. Nenhuma
 mensagem de verdade é enviada durante os testes.
@@ -187,7 +212,7 @@ mensagem de verdade é enviada durante os testes.
 
 | Arquivo | O que tem |
 | --- | --- |
-| `amigo_secreto/sorteio.py` | O sorteio em círculo |
+| `amigo_secreto/sorteio.py` | O sorteio em círculo, com casais e grupos |
 | `amigo_secreto/participantes.py` | Leitura do CSV e normalização dos telefones |
 | `amigo_secreto/whatsapp.py` | Envio e confirmação pelo Twilio, direto pela API REST |
 | `amigo_secreto/cli.py` | Os comandos `sortear`, `reenviar` e `status` |

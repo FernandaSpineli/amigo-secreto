@@ -83,6 +83,23 @@ class CliTest(unittest.TestCase):
         self.assertIn("Todas receberam", saida)
         self.assertEqual(set(self.situacoes().values()), {"entregue"})
 
+    def test_casais_da_lista_nao_se_tiram(self):
+        self.lista.write_text("nome,telefone,grupo\nAna,11900000001,casal A\nBia,11900000002,Casal A\n"
+                              "Carla,11900000003,casal C\nDuda,11900000004,casal c\nEva,11900000005,\n",
+                              encoding="utf-8")
+        casal = {"Ana": "Bia", "Bia": "Ana", "Carla": "Duda", "Duda": "Carla"}
+        for _ in range(30):
+            enviador = EnviadorFalso()
+            codigo, saida = self.rodar("sortear", str(self.lista), "--novo", enviador=enviador)
+            self.assertEqual(codigo, 0, saida)
+            for telefone, texto in enviador.enviadas:
+                nome = NOMES[telefone]
+                amiga = texto.split("você tirou: *")[1].split("*")[0]
+                self.assertNotEqual(amiga, casal.get(nome), f"{nome} tirou o próprio par")
+
+        codigo, saida = self.rodar("sortear", str(self.lista), "--simular")
+        self.assertIn("nem com alguém do mesmo grupo", saida)
+
     def test_arquivo_do_sorteio_fica_so_com_a_dona(self):
         self.rodar("sortear", str(self.lista), enviador=EnviadorFalso())
         self.assertEqual(stat.S_IMODE(os.stat(self.arquivo).st_mode), 0o600)

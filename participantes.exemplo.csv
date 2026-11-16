@@ -1,5 +1,6 @@
-nome,telefone
-Ana,(11) 98765-4321
-Bia,11 91234-5678
-Carla,+55 21 99876-5432
-Duda,31988887777
+nome,telefone,grupo
+Ana,(11) 98765-4321,Ana e Pedro
+Bia,11 91234-5678,
+Carla,+55 21 99876-5432,
+Duda,31988887777,
+Pedro,11 97777-6666,Ana e Pedro
