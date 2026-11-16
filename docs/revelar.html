@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<title>Amigo Secreto</title>
+<meta property="og:title" content="Amigo Secreto 🎁">
+<meta property="og:description" content="Toque para descobrir quem você tirou.">
+<link rel="stylesheet" href="revelar.css">
+</head>
+<body>
+<main>
+  <p class="selo">Amigo Secreto</p>
+
+  <section id="fechado" hidden>
+    <h1 id="saudacao">Oi!</h1>
+    <p>Seu amigo secreto já foi sorteado. Confira se ninguém está olhando a sua tela.</p>
+    <button id="revelar" type="button">Revelar quem eu tirei</button>
+  </section>
+
+  <section id="aberto" hidden>
+    <p>Você tirou</p>
+    <h1 id="amiga" class="amiga"></h1>
+    <p class="dica">Shh, é segredo! 🤫 Este link é só seu: não repasse.</p>
+    <button id="esconder" type="button" class="discreto">Esconder</button>
+  </section>
+
+  <section id="invalido" hidden>
+    <h1>Link incompleto</h1>
+    <p>Este link não abriu direito. Toque de novo no link que você recebeu, ou peça para quem organizou mandar outra vez.</p>
+  </section>
+</main>
+<script src="revelar.js"></script>
+</body>
+</html>

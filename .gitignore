@@ -2,7 +2,8 @@
 participantes.csv
 sorteio.json
 sorteio.json.tmp
-.env
+enviar.html
+enviar.html.tmp
 __pycache__/
 *.pyc
 .venv/

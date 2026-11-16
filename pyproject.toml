@@ -1,7 +1,7 @@
 [project]
 name = "amigo-secreto"
 version = "0.1.0"
-description = "Sorteio de amigo secreto com envio por WhatsApp"
+description = "Sorteio de amigo secreto com links secretos enviados pelo WhatsApp"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = []

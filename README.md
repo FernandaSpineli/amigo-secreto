@@ -1,11 +1,43 @@
 # Amigo Secreto
 
-Sorteio de amigo secreto que manda para cada pessoa, no WhatsApp, o nome de
-quem ela tirou. Ninguém cai com o próprio nome, todas tiram e são tiradas
-exatamente uma vez, casais não se tiram, e quem organiza também pode
-participar: o programa nunca
-mostra o resultado na tela, e as mensagens saem de um número do Twilio, não
-do seu WhatsApp, então elas não ficam no seu histórico de conversas.
+Sorteio de amigo secreto em que cada pessoa recebe, no WhatsApp, um link
+secreto que mostra só quem ela tirou. Ninguém cai com o próprio nome, todas
+tiram e são tiradas exatamente uma vez, casais não se tiram, e quem
+organiza também pode participar: o nome sorteado nunca aparece na tela de
+quem organiza nem no texto das mensagens.
+
+Não precisa de conta em nenhum serviço nem custa nada: as mensagens saem do
+seu próprio WhatsApp.
+
+## Como funciona
+
+1. O programa faz o sorteio e gera um link secreto para cada pessoa.
+2. Ele abre no navegador uma página com um botão **Enviar** para cada uma.
+3. Cada botão abre o WhatsApp (o aplicativo ou o WhatsApp Web) na conversa
+   com aquela pessoa, com a mensagem já escrita. É só enviar.
+4. Quem recebe toca no link, vê "Oi, Ana!" e um botão **Revelar quem eu
+   tirei**, e só então aparece o nome.
+
+A mensagem que fica na sua conversa é algo como:
+
+> Oi, Ana! 🎁 O amigo secreto foi sorteado. Abra o seu link para descobrir
+> quem você tirou (ele é só seu, não repasse):
+> https://fernandaspineli.github.io/amigo-secreto/revelar.html#Qk3x…
+
+**Não abra os links que você enviar:** cada um revela quem aquela pessoa
+tirou.
+
+### O link secreto
+
+O resultado vai embaralhado depois do `#` do link. Essa parte nunca sai do
+celular de quem abre: o navegador não a envia ao servidor, e quem decifra é
+a própria página, no aparelho. O embaralhamento usa uma chave aleatória que
+vai junto no link, então ele não protege contra quem tem o link (a pessoa
+precisa conseguir ler!), mas impede que alguém descubra o nome só de olhar
+o link, por exemplo no seu histórico de conversas.
+
+A página de revelação (`docs/revelar.html`) é estática e fica publicada no
+GitHub Pages deste repositório.
 
 ## Como o sorteio funciona
 
@@ -43,8 +75,7 @@ possível, e o programa avisa.
 ## Requisitos
 
 - Python 3.10 ou mais novo. Não há dependências para instalar.
-- Uma conta no [Twilio](https://www.twilio.com/), que envia as mensagens de
-  WhatsApp (veja abaixo).
+- WhatsApp no celular ou no computador (WhatsApp Web).
 
 ## Passo a passo
 
@@ -72,115 +103,53 @@ branco para quem não tem restrição. Um grupo com uma pessoa só é tratado
 como erro de digitação (por exemplo, "casal 1" e "casal1"), para que o
 casal não fique livre para se tirar sem você perceber.
 
-O `.gitignore` já impede que `participantes.csv` e o resultado do sorteio
-vão parar no Git.
+O `.gitignore` já impede que a lista, o resultado e a página de envio vão
+parar no Git.
 
-### 2. Teste sem enviar nada
+### 2. Confira a lista
 
 ```bash
 python3 -m amigo_secreto sortear participantes.csv --simular
 ```
 
-Esse comando confere a lista, faz um sorteio e monta as mensagens, mas não
-envia nem salva nada, e também não mostra quem tirou quem.
+Esse comando confere a lista e faz um sorteio de teste, sem salvar nada.
 
-### 3. Configure o Twilio e o sandbox de WhatsApp
-
-1. Crie uma conta em <https://www.twilio.com/try-twilio>.
-2. No painel (Console), copie o **Account SID** e o **Auth Token**.
-3. Abra **Messaging → Try it out → Send a WhatsApp message**. Lá aparecem o
-   número do sandbox (normalmente `+1 415 523 8886`) e uma frase do tipo
-   `join palavra-palavra`.
-4. Copie `.env.exemplo` para `.env`, preencha e carregue no terminal:
-
-   ```bash
-   set -a; source .env; set +a
-   ```
-
-### 4. Peça para cada amiga entrar no sandbox
-
-Antes do sorteio, **cada participante** (você também, se for participar)
-precisa mandar, do próprio WhatsApp, a frase `join palavra-palavra` para o
-número do sandbox. Uma mensagem no grupo resolve:
-
-> Gente, para o sorteio do amigo secreto, mandem a mensagem
-> `join palavra-palavra` no WhatsApp para +1 415 523 8886 e me avisem!
-
-Duas regras do WhatsApp para ter em mente:
-
-- quem não entrou no sandbox não recebe nada;
-- o número só pode mandar uma mensagem livre para quem falou com ele nas
-  últimas 24 horas. Por isso, **faça o sorteio no mesmo dia** em que as
-  amigas mandarem o `join`.
-
-Se faltar alguém, não tem problema: o programa avisa quem não recebeu e o
-motivo, e dá para reenviar depois (veja "Se algo der errado").
-
-> O sandbox é gratuito para testes e serve bem para um grupo de amigas. Para
-> enviar sem o passo do `join`, seria preciso registrar um número próprio no
-> WhatsApp Business, com verificação da Meta e modelos de mensagem
-> aprovados, o que é bem mais trabalhoso.
-
-### 5. Faça o sorteio
+### 3. Sorteie e envie
 
 ```bash
 python3 -m amigo_secreto sortear participantes.csv
 ```
 
 ```
-Sorteio feito com 5 participantes. Enviando pelo WhatsApp...
-  ✓ Ana (+5511987654321)
-  ✓ Bia (+5511912345678)
-  ✓ Carla (+5521998765432)
-  ✓ Duda (+5531988887777)
-  ✓ Eva (+5511955554444)
-Pronto! Todas receberam a mensagem.
+Sorteio feito com 5 participantes.
+Página de envio: /home/voce/amigo-secreto/enviar.html
+Toque em cada botão para abrir o WhatsApp com a mensagem pronta. Não abra os links das mensagens.
 ```
 
-O Twilio aceita a mensagem na hora, mas só depois confirma se ela chegou ao
-WhatsApp. Por isso, o programa espera cerca de 30 segundos pela confirmação de
-cada uma antes de marcar com ✓.
+A página de envio abre no navegador. Toque em **Enviar** ao lado de cada
+nome, envie a mensagem no WhatsApp e volte para a próxima. O botão muda
+para **Enviar de novo** depois de tocado, para você não se perder.
 
-Cada uma recebe algo como:
-
-> Oi, Ana! 🎁 No amigo secreto você tirou: **Duda**. Shh, é segredo! 🤫
-
-Para mudar o texto, use `--mensagem` com `{nome}` (quem recebe) e `{amiga}`
-(quem foi tirada). A formatação do WhatsApp funciona (`*negrito*`,
-`_itálico_`):
+Para mudar o texto, use `--mensagem` com `{link}` (obrigatório) e `{nome}`
+(quem recebe). O programa recusa `{amiga}`, porque o nome sorteado ficaria
+escrito na sua conversa:
 
 ```bash
 python3 -m amigo_secreto sortear participantes.csv \
-  --mensagem "{nome}, seu amigo secreto é *{amiga}*! Presente até R\$ 50, troca dia 20/12."
+  --mensagem "{nome}, saiu o amigo secreto! Presente até R\$ 50, troca dia 20/12. Seu link: {link}"
 ```
 
 ## Se algo der errado
 
 O resultado fica salvo em `sorteio.json`, com permissão só para o seu
-usuário, e é atualizado a cada mensagem. Assim, um problema no meio do
-caminho não obriga a sortear de novo. **Não abra esse arquivo se você
-participa:** ele tem o resultado.
-
-Quando uma mensagem não chega, o programa diz o motivo:
-
-```
-  ✗ Carla (+5521998765432): ainda não entrou no sandbox do Twilio (precisa mandar a mensagem 'join ...' para o número do Twilio)
-1 não receberam. Resolva o problema e rode: python3 -m amigo_secreto reenviar
-```
-
-| Motivo | O que fazer |
-| --- | --- |
-| Ainda não entrou no sandbox | Ela manda o `join ...`, e você roda `reenviar` |
-| Passou a janela de 24 horas | Ela manda qualquer mensagem para o número do sandbox, e você roda `reenviar` |
-| Este número não tem WhatsApp | Corrija o telefone na lista e faça um sorteio novo com `--novo` |
+usuário. **Não abra esse arquivo se você participa:** ele tem os links.
 
 ```bash
-python3 -m amigo_secreto status               # ✓ recebeu, ⏳ aguardando confirmação, ✗ não recebeu
-python3 -m amigo_secreto reenviar             # confere as que aguardam e reenvia as que não chegaram
-python3 -m amigo_secreto reenviar --nome Bia  # a Bia apagou a mensagem: manda de novo o mesmo resultado
+python3 -m amigo_secreto reenviar             # reabre a página de envio, com os mesmos links
+python3 -m amigo_secreto reenviar --nome Bia  # só o botão da Bia, que apagou a mensagem
 ```
 
-O `reenviar` nunca muda o sorteio: quem recebe de novo recebe o mesmo nome.
+O `reenviar` nunca muda o sorteio: quem recebe de novo recebe o mesmo link.
 Para descartar o sorteio e fazer outro (por exemplo, se alguém entrou ou
 saiu do grupo):
 
@@ -188,9 +157,19 @@ saiu do grupo):
 python3 -m amigo_secreto sortear participantes.csv --novo
 ```
 
-Quem já tinha recebido vai receber uma nova mensagem com o novo resultado.
-Sem `--novo`, o programa se recusa a sortear por cima de um sorteio
-existente.
+Nesse caso, mande as mensagens novas para todas e avise que os links
+antigos não valem mais.
+
+## Usando a sua própria página de revelação
+
+Por padrão, os links apontam para a página publicada neste repositório. Se
+você fizer um fork, ative o GitHub Pages (Settings → Pages → branch `main`,
+pasta `/docs`) e passe o endereço da sua página:
+
+```bash
+python3 -m amigo_secreto sortear participantes.csv \
+  --site https://seu-usuario.github.io/amigo-secreto/revelar.html
+```
 
 ## Testes
 
@@ -203,10 +182,12 @@ e conferem que ninguém tira a si mesma, que todas são tiradas uma vez e que
 o resultado forma um único círculo. Com casais e grupos, os testes conferem
 que ninguém tira alguém do próprio grupo e comparam com todas as ordens
 possíveis: o sorteio sai sempre que existe solução e é recusado quando não
-existe. Também cobrem a leitura da lista, os
-pedidos feitos ao Twilio e o fluxo completo: espera pela confirmação, falha
-depois de a mensagem ser aceita, confirmação que demora e reenvio. Nenhuma
-mensagem de verdade é enviada durante os testes.
+existe.
+
+Também cobrem a leitura da lista, os links do WhatsApp, a página de envio
+(sem o nome sorteado em lugar nenhum) e, se o Node estiver instalado, o
+JavaScript da página de revelação, que precisa decifrar exatamente o que o
+Python gera.
 
 ## Organização
 
@@ -214,5 +195,7 @@ mensagem de verdade é enviada durante os testes.
 | --- | --- |
 | `amigo_secreto/sorteio.py` | O sorteio em círculo, com casais e grupos |
 | `amigo_secreto/participantes.py` | Leitura do CSV e normalização dos telefones |
-| `amigo_secreto/whatsapp.py` | Envio e confirmação pelo Twilio, direto pela API REST |
-| `amigo_secreto/cli.py` | Os comandos `sortear`, `reenviar` e `status` |
+| `amigo_secreto/links.py` | Os links secretos e os links do WhatsApp |
+| `amigo_secreto/pagina.py` | A página local com os botões de envio |
+| `amigo_secreto/cli.py` | Os comandos `sortear` e `reenviar` |
+| `docs/revelar.html` | A página de revelação, publicada no GitHub Pages |
